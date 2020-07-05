@@ -1,0 +1,41 @@
+p {
+    line-height: 1.7;
+    font-size: 16px;
+    color: rgb(87, 87, 87);
+    padding: 0;
+    margin: 0;
+}
+
+h1,h2,h3 {
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.protocol-container {
+    padding: 12px;
+}
+
+.protocol-container .title{
+    line-height: 50px;
+    text-align: center;
+    font-size: 30px;
+}
+
+.protocol-container .time {
+    font-size: 14px;
+    color: rgb(87, 87, 87);
+    font-weight: bold;
+    line-height: 1.7;
+    padding: 20px 0;
+}
+
+.protocol-container h2 {
+    font-size: 18px;
+    padding: 30px 0 20px;
+}
+
+.protocol-container h3 {
+    font-size: 16px;
+    padding: 20px 0 15px;
+}
