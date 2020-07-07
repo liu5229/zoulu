@@ -144,7 +144,6 @@ Class AdminBaseController extends AbstractController {
                     $result = move_uploaded_file($uploadFile['tmp_name'], APP_DIR . $uploadFile['name']);
                     break;
             }
-            var_dump($result);
             return array($_FILES);
         }
     }
