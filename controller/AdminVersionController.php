@@ -29,7 +29,6 @@ Class AdminVersionController extends AbstractController {
                         $uploadApk = 'app/' . $apkName;
                         $oss = new Oss();
                         $uploadReturn = $oss->upload($uploadApk, APP_DIR . $apkName);
-                        var_dump($uploadReturn);
                         if ($uploadReturn !== TRUE) {
                             throw new \Exception("Upload Oss failure");
                         }
