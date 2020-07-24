@@ -1,10 +1,5 @@
 <?php
 
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 Class Activity2Controller extends AbstractController {
     protected $userId;
     protected $clockinConfig = array(
@@ -20,7 +15,7 @@ Class Activity2Controller extends AbstractController {
         10 => array('min' => ' 21:00:00', 'max' => ' 22:30:00'),
     );
     protected $scratchConfigList = array(1 => array('img' => 'https://oss.zouluduoduo.cn/scratch/scratch_01.png', 'gold' => 100000, 'probability' => array(1 => 30, 2 => 30, 3 => 20, 4 => 10, 5 => 10)), 2 => array('img' => 'https://oss.zouluduoduo.cn/scratch/scratch_02.png', 'gold' => 80000, 'probability' => array(1 => 30, 2 => 30, 3 => 20, 4 => 15, 5 => 5)), 3 => array('img' => 'https://oss.zouluduoduo.cn/scratch/scratch_03.png', 'gold' => 50000, 'probability' => array(1 => 30, 2 => 30, 3 => 20, 4 => 15, 5 => 5)), 4 => array('img' => 'https://oss.zouluduoduo.cn/scratch/scratch_04.png', 'gold' => 50000, 'probability' => array(1 => 40, 2 => 27, 3 => 20, 4 => 10, 5 => 3)), 5 => array('img' => 'https://oss.zouluduoduo.cn/scratch/scratch_05.png', 'gold' => 30000, 'probability' => array(1 => 50, 2 => 20, 3 => 18, 4 => 10, 5 => 2)), 6 => array('img' => 'https://oss.zouluduoduo.cn/scratch/scratch_06.png', 'gold' => 880000, 'probability' => array(1 => 30, 2 => 30, 3 => 20, 4 => 10, 5 => 10)), 7 => array('img' => 'https://oss.zouluduoduo.cn/scratch/scratch_07.png', 'gold' => 580000, 'probability' => array(1 => 30, 2 => 30, 3 => 20, 4 => 15, 5 => 5)), 8 => array('img' => 'https://oss.zouluduoduo.cn/scratch/scratch_08.png', 'gold' => 380000, 'probability' => array(1 => 30, 2 => 30, 3 => 20, 4 => 15, 5 => 5)), 9 => array('img' => 'https://oss.zouluduoduo.cn/scratch/scratch_09.png', 'gold' => 200000, 'probability' => array(1 => 40, 2 => 27, 3 => 20, 4 => 10, 5 => 3)), 10 => array('img' => 'https://oss.zouluduoduo.cn/scratch/scratch_10.png', 'gold' => 100000, 'probability' => array(1 => 50, 2 => 20, 3 => 18, 4 => 10, 5 => 2)));
-    protected $scratchClock = array();
+    protected $scratchClock = array(7, 11, 15, 19, 23);
     
     /**
      * 验证用户token 设置用户id
@@ -63,6 +58,7 @@ Class Activity2Controller extends AbstractController {
         $return['invitedCount'] = $this->db->getOne($sql, $this->userId);
         return new ApiReturn($return);
     }
+
     /**
      * 获取用户邀请信息
      * @return \ApiReturn
@@ -374,7 +370,7 @@ Class Activity2Controller extends AbstractController {
      * @return ApiReturn
      */
     public function scratchListAction () {
-        $config = array(7, 11, 15, 19, 23);
+        $config = $this->scratchClock;
         $nowHours = date('H');
         $todayDate = date('Y-m-d');
         $endTime = '';
@@ -443,7 +439,7 @@ Class Activity2Controller extends AbstractController {
      * @return ApiReturn
      */
     public function scratchUnlockAction () {
-        $config = array(7, 11, 15, 19, 23);
+        $config = $this->scratchClock;
         $nowHours = date('H');
         $todayDate = date('Y-m-d');
         $batch = 0;
@@ -517,6 +513,10 @@ Class Activity2Controller extends AbstractController {
         return new ApiReturn(array('awardGold' => $awardInfo ? ($awardInfo['receive_gold']  * ($doubleStatus + 1)) : 0, 'currentGold' => $goldInfo['currentGold']));
     }
 
+    /**
+     * 获取领取鱼玩奖励信息
+     * @return ApiReturn
+     */
     public function yuwanInfoAction () {
         if (!isset($this->inputData['time'])) {
             return new ApiReturn('', 205, '访问失败，请稍后再试');
@@ -532,6 +532,10 @@ Class Activity2Controller extends AbstractController {
         return new ApiReturn($info);
     }
 
+    /**
+     * 获取领取推啊农场奖励信息
+     * @return ApiReturn
+     */
     public function farmInfoAction () {
         if (!isset($this->inputData['time'])) {
             return new ApiReturn('', 205, '访问失败，请稍后再试');
@@ -576,6 +580,5 @@ Class Activity2Controller extends AbstractController {
         return array('num' => $golds * 10 , 'content' => json_encode($return));
     }
 
-    
 }
 

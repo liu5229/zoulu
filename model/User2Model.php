@@ -1,12 +1,6 @@
 <?php
 
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-class User2Model extends UserModel {
+class User2Model extends AbstractModel {
     protected $maxGoldEveryDay = 20000;
 
     /**
@@ -163,7 +157,50 @@ class User2Model extends UserModel {
         
         return TRUE;
     }
-    
+
+    /**
+     * 验证token有效性
+     * @return ApiReturn
+     */
+    public function verifyToken() {
+        $token = $_SERVER['HTTP_ACCESSTOKEN'] ?? '';
+        if ($token) {
+            $sql = 'SELECT user_id FROM t_user WHERE access_token = ?';
+            $userId = $this->db->getOne($sql, $token);
+            if ($userId) {
+                return $userId;
+            }
+        }
+        return new ApiReturn('', 201, '登录失败');
+    }
+
+    /**
+     * 获取用户金币信息 总金币 冻结金币 当前金币
+     * @param $userId
+     * @return array
+     */
+    public function getGold ($userId) {
+        //获取当前用户可用金币
+        $sql = 'SELECT SUM(IF(change_type="in", change_gold, -change_gold)) FROM t_gold WHERE user_id = ?';
+        $totalGold = $this->db->getOne($sql, $userId) ?? 0;
+        $sql = 'SELECT SUM(withdraw_gold) FROM t_withdraw WHERE user_id = ? AND withdraw_status = "pending"';
+        $bolckedGold = $this->db->getOne($sql, $userId) ?? 0;
+        $currentGold = $totalGold - $bolckedGold;
+        return array('totalGold' => $totalGold, 'bolckedGold' => $bolckedGold, 'currentGold' => $currentGold);
+    }
+
+    /**
+     * 获取用户信息
+     * @param $userId
+     * @param string $filed
+     * @return mixed
+     */
+    public function userInfo ($userId, $filed='') {
+        $sql = 'SELECT * FROM t_user WHERE user_id = ?';
+        $userInfo = $this->db->getRow($sql, $userId);
+        return $userInfo[$filed] ?? $userInfo;
+    }
+
     /**
      * 更新用户每日首次登陆时间
      * @param type $userId

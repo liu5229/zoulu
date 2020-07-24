@@ -1,6 +1,6 @@
 <?php
 
-class WalkCounter2 extends WalkCounter
+class WalkCounter2 extends AbstractModel
 {
     //领取奖励条件步数
     protected $rewardCounter = 50;

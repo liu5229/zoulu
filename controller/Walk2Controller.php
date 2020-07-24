@@ -1,6 +1,6 @@
 <?php 
 
-Class Walk2Controller extends WalkController {
+Class Walk2Controller extends AbstractController {
     //提现汇率
     protected $withdrawalRate = 10000;
     protected $userId;

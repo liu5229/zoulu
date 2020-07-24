@@ -1,6 +1,6 @@
 <?php 
 
-Class User2Controller extends UserController {
+Class User2Controller extends AbstractController {
     
     /**
      * 获取用户信息
@@ -378,7 +378,6 @@ Class User2Controller extends UserController {
         ));
         return new ApiReturn();
     }
-
 
     /**
      * 绑定支付宝信息
