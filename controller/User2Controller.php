@@ -136,7 +136,7 @@ Class User2Controller extends AbstractController {
             return new ApiReturn('', 205, '访问失败，请稍后再试');
         }
         $sql = 'SELECT advertise_type, advertise_name, advertise_subtitle, CONCAT(?, advertise_image) img, advertise_url, advertise_validity_type, advertise_validity_type, advertise_validity_start, advertise_validity_end, advertise_validity_length
-                FROM t_advertise
+                FROM t_advertise_old
                 WHERE advertise_location = ?
                 AND advertise_status = 1
                 ORDER BY advertise_sort DESC';
