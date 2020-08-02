@@ -87,6 +87,9 @@ Class Task extends AbstractController {
             default :
                 $sql = 'SELECT COUNT(*) FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = ?';
                 $todayCount = $this->db->getOne($sql, $userId, $today, $type);
+                if ('video_2' == $type) {
+                    var_dump($todayCount);
+                }
                 if (!$todayCount) {
                     //第一次领取
                     $sql = 'SELECT * FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = ? ORDER BY receive_id DESC LIMIT 1';
@@ -118,7 +121,7 @@ Class Task extends AbstractController {
                     }
                     
                     $sql = 'INSERT INTO t_gold2receive SET user_id = ?, receive_date = ?, receive_type = ?, end_time = ?, receive_gold = ?';
-                    $this->db->exec($sql, $userId, $today, $type, date('Y-m-d H:i:s'), $gold);
+                    $this->db->exec($sql, $userId, $today, $type, $endTime, $gold);
                 }
                 $sql = 'SELECT * FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = ? ORDER BY receive_id DESC LIMIT 1';
                 $historyInfo = $this->db->getRow($sql, $userId, $today, $type);
