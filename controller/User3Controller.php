@@ -45,7 +45,7 @@ Class User3Controller extends User2Controller {
                 WHERE advertise_location = ?
                 AND advertise_status = 1
                 AND advertise_version <= ?
-                ORDER BY advertise_version, advertise_sort DESC';
+                ORDER BY advertise_version DESC, advertise_sort DESC';
         $advertiseList = $this->db->getAll($sql, HOST_OSS, $this->inputData['location'], $this->inputData['versionCode']);
         $returnList = $tempArr = array();
         $adLimitCount = $adCount[$this->inputData['location']];
