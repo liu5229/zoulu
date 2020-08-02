@@ -89,6 +89,9 @@ Class Task extends AbstractController {
                 $todayCount = $this->db->getOne($sql, $userId, $today, $type);
                 if ('video_2' == $type) {
                     var_dump($todayCount);
+                    var_dump($sql);
+                    var_dump($userId);
+                    var_dump($today);
                 }
                 if (!$todayCount) {
                     //第一次领取
