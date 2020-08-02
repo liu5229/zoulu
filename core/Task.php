@@ -87,12 +87,6 @@ Class Task extends AbstractController {
             default :
                 $sql = 'SELECT COUNT(*) FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = ?';
                 $todayCount = $this->db->getOne($sql, $userId, $today, $type);
-                if ('video_2' == $type) {
-                    var_dump($todayCount);
-                    var_dump($sql);
-                    var_dump($userId);
-                    var_dump($today);
-                }
                 if (!$todayCount) {
                     //第一次领取
                     $sql = 'SELECT * FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = ? ORDER BY receive_id DESC LIMIT 1';
