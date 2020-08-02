@@ -162,10 +162,10 @@ class WalkCounter2 extends AbstractModel
         $receiceStep = $this->db->getRow($sql, $this->userId, $this->todayDate);
         $residualStep = $this->stepCount - $receiceStep['max'];
         $count = $receiceStep['count'];
-        $sql = 'SELECT COUNT(*) FROM t_award_config_update WHERE config_type = ?';
-        $updateConfig = $this->db->getOne($sql, 'walk');
         $sql = 'SELECT MAX(withdraw_amount) FROM t_withdraw WHERE user_id = ? AND withdraw_status = "success"';
         $withDraw = $this->db->getOne($sql, $this->userId);
+        $sql = 'SELECT COUNT(*) FROM t_award_config_update WHERE config_type = ? AND withdraw <= ?';
+        $updateConfig = $this->db->getOne($sql, 'walk', $withDraw);
 
         $sql = 'SELECT COUNT(receive_id) FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = "walk" AND receive_status = 0';
         $notReceiveCount = $this->db->getOne($sql, $this->userId, $this->todayDate);
@@ -175,7 +175,7 @@ class WalkCounter2 extends AbstractModel
                 break;
             }
             $count++;
-            if ($updateConfig && $withDraw) {
+            if ($updateConfig) {
                 $sql = 'SELECT award_min, award_max FROM t_award_config_update WHERE config_type = "walk" AND counter <= ? AND withdraw <= ? ORDER BY withdraw DESC, counter DESC';
                 $awardRange = $this->db->getRow($sql, $count, $withDraw);
             } else {
