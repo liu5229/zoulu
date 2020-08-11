@@ -168,7 +168,7 @@ Class ApiController extends AbstractController {
             file_put_contents($logFile . 'access_' . date('H') . '.log', date('Y-m-d H:i:s') . '|reyun|' . json_encode($_GET) . '|' . PHP_EOL, FILE_APPEND);
         }
         if (isset($_GET['spreadname']) && isset($_GET['imei']) && isset($_GET['appkey']) && isset($_GET['skey']) && isset($_GET['activetime'])) {
-            if ('bec5fa78bd65aff94ca5d775df4ad294' != $_GET['appkey']) {
+            if ('8b066e8d362abc9ac1dfe1ef6c60cef4' != $_GET['appkey']) {
                 $return = array('code' => '802', 'msg' => '验证appkey失败');
                 return json_encode($return);
             }
@@ -181,17 +181,19 @@ Class ApiController extends AbstractController {
                 $return = array('code' => '804', 'msg' => '验证签名失败');
                 return json_encode($return);
             }
-            $sql = 'SELECT user_id FROM t_user WHERE imei = ?';
-            $userId = $this->db->getOne($sql, $_GET['imei']);
-            if (!$userId) {
-                $sql = 'INSERT INTO t_reyun_log SET imei = ?, app_name = ?, params = ?';
-                $this->db->exec($sql, $_GET['imei'], $_GET['spreadname'], json_encode($_GET));
-                $return = array('code' => '803', 'msg' => '无效用户');
-                return json_encode($return);
+
+            $sql = 'INSERT INTO t_reyun_log SET imei = ?, app_name = ?, params = ?, compaign_id = ?';
+            $this->db->exec($sql, $_GET['imei'], $_GET['spreadname'], json_encode($_GET), $_GET['_ry_adplan_id'] ?? 0);
+            $logId = $this->db->lastInsertId();
+            $sql = 'SELECT user_id FROM t_user WHERE imei = ? AND oaid = ? AND androidid = ?';
+            $userId = $this->db->getOne($sql, $_GET['spreadname'], $_GET['spreadname'], $_GET['spreadname']);
+            if ($userId) {
+                $sql = 'UPDATE t_user SET reyun_app_name = ?, compaign_id = ? WHERE user_id = ?';
+                $this->db->exec($sql, $_GET['spreadname'], $_GET['_ry_adplan_id'] ?? 0, $userId);
+                $sql = 'UPDATE t_reyun_log SET user_id = ? WHERE log_id = ?';
+                $this->db->exec($sql, $userId, $logId);
             }
-            $sql = 'UPDATE t_user SET reyun_app_name = ? WHERE user_id = ?';
-            $this->db->exec($sql, $_GET['spreadname'], $userId);
-            $return = array('code' => '200', 'msg' => '更新成功');
+            $return = array('code' => '200', 'msg' => '保存成功');
             return json_encode($return);
         } else {
             //code “0”:成功，“-1”:重填，“其他”:充值异 常。注意:响应 code 类型需为 String
