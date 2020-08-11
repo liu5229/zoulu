@@ -103,7 +103,6 @@ Class Walk2Controller extends AbstractController {
                 } else {
                     return new ApiReturn('', 205, '访问失败，请稍后再试');
                 }
-            case 'newer'://user2model/get-userInfo
             case 'wechat'://user2/build-wechat
             case 'do_invite'://user2/build-invited
             case 'invited'://user2/build-invited
@@ -153,6 +152,26 @@ Class Walk2Controller extends AbstractController {
 //                    $walkReward->receiveSuccess($this->inputData['id']);
                     $goldInfo = $this->model->user2->getGold($this->userId);
                     return new ApiReturn(array('awardGold' => $historyInfo['receive_gold'], 'currentGold' => $goldInfo['currentGold']));
+                }
+                return $updateStatus;
+            //新手红包 单次领取
+            case 'newer'://user2model/get-userInfo
+                $sql = 'SELECT gold_id FROM t_gold WHERE user_id = ? AND gold_source = ?';
+                $newInfo = $this->db->getOne($sql, $this->userId, 'newer');
+                if ($newInfo) {
+                    return new ApiReturn('', 401, '您已领取过该奖励');
+                }
+
+                $doubleStatus = $this->inputData['isDouble'] ?? 0;
+                $updateStatus = $this->model->user2->updateGold(array(
+                    'user_id' => $this->userId,
+                    'gold' => $activityInfo['activity_award_min'] * ($doubleStatus + 1),
+                    'source' => $this->inputData['type'],
+                    'type' => 'in',
+                    'relation_id' => 0));
+                if (TRUE === $updateStatus) {
+                    $goldInfo = $this->model->user2->getGold($this->userId);
+                    return new ApiReturn(array('awardGold' => $activityInfo['activity_award_min'] * ($doubleStatus + 1), 'currentGold' => $goldInfo['currentGold']));
                 }
                 return $updateStatus;
             default :
