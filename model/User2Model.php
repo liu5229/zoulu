@@ -218,6 +218,23 @@ class User2Model extends AbstractModel {
         $sql = 'UPDATE t_user SET last_login_time = ?, login_ip = ? WHERE user_id = ?';
         $this->db->exec($sql, date('Y-m-d H:i:s'), $_SERVER['REMOTE_ADDR'] ?? '', $userId);
     }
-            
+
+    public function reyunAppName ($imie, $oaid, $androidid) {
+        $sql = 'SELECT app_name FROM t_reyun_log WHERE imei = ?';
+        $appName = $this->db->getOne($sql, $imie);
+        if ($appName) {
+            return $appName;
+        }
+        $appName = $this->db->getOne($sql, $oaid);
+        if ($appName) {
+            return $appName;
+        }
+        $appName = $this->db->getOne($sql, $androidid);
+        if ($appName) {
+            return $appName;
+        }
+        return '';
+
+    }
             
 }
