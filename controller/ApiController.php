@@ -185,7 +185,7 @@ Class ApiController extends AbstractController {
             $sql = 'INSERT INTO t_reyun_log SET imei = ?, app_name = ?, params = ?, compaign_id = ?';
             $this->db->exec($sql, $_GET['imei'], $_GET['spreadname'], json_encode($_GET), $_GET['_ry_adplan_id'] ?? 0);
             $logId = $this->db->lastInsertId();
-            $sql = 'SELECT user_id FROM t_user WHERE imei = ? AND oaid = ? AND androidid = ?';
+            $sql = 'SELECT user_id FROM t_user WHERE imei = ? OR oaid = ? OR androidid = ?';
             $userId = $this->db->getOne($sql, $_GET['spreadname'], $_GET['spreadname'], $_GET['spreadname']);
             if ($userId) {
                 $sql = 'UPDATE t_user SET reyun_app_name = ?, compaign_id = ? WHERE user_id = ?';

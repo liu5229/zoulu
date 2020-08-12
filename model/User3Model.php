@@ -54,8 +54,8 @@ class User3Model extends User2Model {
                 'phone' => $userInfo['phone_number'],
                 'isOneCashed' => $isOneCashed ? 1 : 0,
                 'invitedCode' => $userInfo['invited_code'],
-                'appSource' => $userInfo['app_name'],//todo 渠道号 来源热云
-                'compaignId' => '',//todo 子渠道号 来源热云
+                'appSource' => $userInfo['reyun_app_name'] ?: $userInfo['app_name'],// 渠道号 来源热云
+                'compaignId' => $userInfo['compaign_id'],// 子渠道号 来源热云
                 'newerGold' => $goldInfo['currentGold'] ? 0 : $newInfo['activity_award_min'],
             );
         } else {
@@ -89,11 +89,29 @@ class User3Model extends User2Model {
                 'nickname' => $nickName,
                 'award' =>$gold,
                 'invitedCode' => $invitedCode,
-                'appSource' => $reyunAppName ?: ($deviceInfo['source'] ?? ''),
-                'compaignId' => '',//todo 子渠道号 来源热云
+                'appSource' => $reyunAppName['app_name'] ?? ($deviceInfo['source'] ?? ''),
+                'compaignId' => $reyunAppName['compaign_id'] ?? '',// 子渠道号 来源热云
                 'newerGold' => $newInfo['activity_status'] ? $newInfo['activity_award_min'] : 0,
             );
         }
+    }
+
+    public function reyunAppName ($imie, $oaid, $androidid) {
+        $sql = 'SELECT log_id, app_name, compaign_id FROM t_reyun_log WHERE imei = ?';
+        $appName = $this->db->getRow($sql, $imie);
+        if ($appName) {
+            return $appName;
+        }
+        $appName = $this->db->getRow($sql, $oaid);
+        if ($appName) {
+            return $appName;
+        }
+        $appName = $this->db->getRow($sql, $androidid);
+        if ($appName) {
+            return $appName;
+        }
+        return array();
+
     }
 
 }
