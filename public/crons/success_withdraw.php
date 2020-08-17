@@ -10,7 +10,7 @@ $db->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 
 $model = new Model();
 $wechatPay = new Wxpay();
-$maxEvery = 300;
+$maxEvery = 150;
 $count = 0;
 while (true) {
     $sql = 'SELECT * FROM t_withdraw WHERE withdraw_status = "pending" AND withdraw_amount = 1 AND withdraw_method = "wechat" ORDER BY withdraw_id';
