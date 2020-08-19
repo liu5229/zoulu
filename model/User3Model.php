@@ -75,6 +75,11 @@ class User3Model extends User2Model {
             $this->db->exec($sql, $deviceId, $nickName, $deviceInfo['source'] ?? '', $reyunAppName, $deviceInfo['VAID'] ?? '', $deviceInfo['AAID'] ?? '', $deviceInfo['OAID'] ?? '', $deviceInfo['brand'] ?? '', $deviceInfo['model'] ?? '', $deviceInfo['SDKVersion'] ?? '', $deviceInfo['AndroidId'] ?? '', $deviceInfo['IMEI'] ?? '', $deviceInfo['MAC'] ?? '', $invitedCode, $deviceInfo['umengToken'] ?? '', $score);
             $userId = $this->db->lastInsertId();
 
+            if (isset($reyunAppName['log_id'])) {
+                $sql = 'UPDATE t_reyun_log SET user_id = ? WHERE log_id = ?';
+                $this->db->exec($sql, $userId, $reyunAppName['log_id']);
+            }
+
             $gold = 0;
 
             $accessToken = md5($userId . time());
