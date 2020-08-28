@@ -432,18 +432,28 @@ Class User2Controller extends AbstractController {
             if ($size > 1024 * 1024) {
                 return new ApiReturn('', 316,'上传图片大小不能超过1M');
             }
-            
-            $saveFile = date('Ymd') . '/';
-            if (!is_dir(UPLOAD_IMAGE_DIR . $saveFile)) {
-                $a = mkdir(UPLOAD_IMAGE_DIR . $saveFile, 0755, true);
-            }
-            
-            $saveFile .= substr(md5(substr($code, 20)), 10) . time() . '.' . strtolower($ext);
-            if (file_put_contents(UPLOAD_IMAGE_DIR . $saveFile, base64_decode(str_replace($result[1], '', $code)))) {
-                return 'upload/image/' . $saveFile;
-            } else {
+            $saveFile = (ENV_PRODUCTION ? '' : 'test-') . substr(md5(substr($code, 20)), 10) . time() . '.' . strtolower($ext);
+
+            file_put_contents('/tmp/' . $saveFile, base64_decode(str_replace($result[1], '', $code)));
+
+            $oss = new Oss();
+            $uploadReturn = $oss->upload('upload/' . $saveFile, '/tmp/' . $saveFile);
+            if ($uploadReturn !== TRUE) {
                 return new ApiReturn('', 314,'上传失败');
             }
+            return 'upload/' . $saveFile;
+            
+//            $saveFile = date('Ymd') . '/';
+//            if (!is_dir(UPLOAD_IMAGE_DIR . $saveFile)) {
+//                $a = mkdir(UPLOAD_IMAGE_DIR . $saveFile, 0755, true);
+//            }
+//
+//            $saveFile .= substr(md5(substr($code, 20)), 10) . time() . '.' . strtolower($ext);
+//            if (file_put_contents(UPLOAD_IMAGE_DIR . $saveFile, base64_decode(str_replace($result[1], '', $code)))) {
+//                return 'upload/image/' . $saveFile;
+//            } else {
+//                return new ApiReturn('', 314,'上传失败');
+//            }
         }else{
             return new ApiReturn('', 314,'上传失败');
         }
