@@ -206,4 +206,11 @@ Class ApiController extends AbstractController {
             return json_encode($return);
         }
     }
+
+    public function pddCodeAction () {
+        $codeFile = LOG_DIR . 'pdd_code.txt';
+        file_put_contents($codeFile, json_encode($_GET), FILE_APPEND);//FILE_APPEND
+        $return = array('code' => '200', 'msg' => '保存成功');
+        return json_encode($return);
+    }
 }
