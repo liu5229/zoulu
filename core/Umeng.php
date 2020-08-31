@@ -6,9 +6,9 @@ Class Umeng {
     protected $appkey;
 
     public function __construct () {
-        $this->apiKey = 7991273;
-        $this->apiSecurity = 'JWiack3xYYxl';
-        $this->appkey = '5efece710cafb23f3c0000ac';
+        $this->apiKey = UMENG_APIKEY;
+        $this->apiSecurity = UMENG_APISECURITY;
+        $this->appkey = UMENG_APPKEY;
     }
     
     public function verify ($zToken) {

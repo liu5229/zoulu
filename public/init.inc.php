@@ -37,6 +37,31 @@ if (file_exists(CONFIG_DIR . 'config.private.php')) {
 !defined('JY_WALK_ADMIN_PASSWORD') && define('JY_WALK_ADMIN_PASSWORD', '123456');
 
 !defined('PAY_MODE') && define('PAY_MODE', FALSE);
+//ali config start
+!defined('ALI_KEYID') && define('ALI_KEYID', '');//aliyun
+!defined('ALI_KEYSECRET') && define('ALI_KEYSECRET', '');//aliyun
+//oss config start
+!defined('OSS_ENDPOINT') && define('OSS_ENDPOINT', '');//aliyun
+!defined('OSS_BUCKET') && define('OSS_BUCKET', '');//aliyun
+//oss config end
+//sms config start
+
+!defined('ALI_APPID') && define('ALI_APPID', '');//alipay
+!defined('ALI_PRIVATEKEY') && define('ALI_PRIVATEKEY', '');//alipay
+!defined('ALI_PUBLICKEY') && define('ALI_PUBLICKEY', '');//alipay
+//sms config end
+//ali config end
+//umeng config start
+!defined('UMENG_APIKEY') && define('UMENG_APIKEY', 0);
+!defined('UMENG_APISECURITY') && define('UMENG_APISECURITY', '');
+!defined('UMENG_APPKEY') && define('UMENG_APPKEY', '');
+//umeng config end
+
+//wechat config start
+!defined('WECHAT_APPID') && define('WECHAT_APPID', '');//申请商户号的appid或商户号绑定的appid
+!defined('WECHAT_ID') && define('WECHAT_ID', '');//微信支付分配的商户号
+!defined('WECHAT_KEY') && define('WECHAT_KEY', '');
+//wechat config end
 /**
  * register autoload
  */
