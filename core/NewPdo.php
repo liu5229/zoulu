@@ -22,7 +22,7 @@ class newPdo extends \PDO
         if (null === $options) {
             $options = array(
                 // persistent connection
-                \PDO::ATTR_PERSISTENT => true,
+//                \PDO::ATTR_PERSISTENT => true,
                 // Return the number of found (matched) rows, not the number of changed rows
                 \PDO::MYSQL_ATTR_FOUND_ROWS => true
             );

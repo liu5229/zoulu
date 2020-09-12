@@ -458,5 +458,30 @@ Class User2Controller extends AbstractController {
             return new ApiReturn('', 314,'上传失败');
         }
     }
+
+    /**
+     * 获取tab内容
+     * @return ApiReturn
+     */
+    public function tabAction () {
+        //scratch 刮刮卡 box 鱼玩游戏
+        $sql = 'SELECT variable_value FROM t_variable WHERE variable_name = ?';
+        $tabType = $this->db->getOne($sql, 'tab_type');
+        return new ApiReturn(array('tab' => $tabType));
+    }
+
+
+    /**
+     * 获取用户渠道号
+     * 优先级  热云>apk包默认
+     * @return ApiReturn
+     */
+    public function sourceAction () {
+        $userId = $this->model->user2->verifyToken();
+        if ($userId instanceof apiReturn) {
+            return $userId;
+        }
+        return new ApiReturn(array('appSource' => '', 'compaignId' => ''));
+    }
     
 }
