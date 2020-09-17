@@ -22,17 +22,14 @@ try {
                 if (method_exists($controller, $fullActionName)) {
                     $result = $controller->$fullActionName();
                 } else {
-                    http_response_code(404);
-                    exit;
+                    throw new \Exception("Can't autoload action " . $actionName);
                 }
             } else {
-                http_response_code(404);
-                exit;
+                throw new \Exception("Need a action");
             }
         }
     } else {
-        http_response_code(404);
-        exit;
+        throw new \Exception("Need a controller");
     }
     if ($result instanceof apiReturn) {
         $return = array('code' => $result->code, 'data' => $result->data, 'msg' => $result->msg);

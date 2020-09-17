@@ -122,7 +122,7 @@ Class Task extends AbstractController {
                 }
                 $sql = 'SELECT * FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = ? ORDER BY receive_id DESC LIMIT 1';
                 $historyInfo = $this->db->getRow($sql, $userId, $today, $type);
-                $taskInfo = array();
+
                 $sql = 'SELECT COUNT(*) FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = ? AND receive_status = 1';
                 $receiveCount = $this->db->getOne($sql, $userId, $today, $type);
                 $taskInfo = array('receiveCount' => $receiveCount, 
