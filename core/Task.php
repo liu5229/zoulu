@@ -8,7 +8,7 @@
 
 Class Task extends AbstractController {
     
-    public function getTask ($type, $userId) {
+    public function getTask ($type, $userId, $versionCode = 0) {
         $sql = 'SELECT * FROM t_activity WHERE activity_type = ?';
         $activityInfo = $this->db->getRow($sql, $type);
         if (!$activityInfo) {
@@ -43,6 +43,13 @@ Class Task extends AbstractController {
                 $checkInDays = $this->db->getOne($sql, $userId);
                 $sql = 'SELECT receive_id id , receive_gold num, receive_status isReceive, is_double isDouble FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = ?';
                 $todayInfo = $this->db->getRow($sql, $userId, $today, $type);
+
+                if ($versionCode >= 130) {
+                    $receiveType = 'sign_130';
+                } else {
+                    $receiveType = 'sign';
+                }
+
                 if(!$todayInfo) {
                     $sql = 'SELECT COUNT(*) FROM t_gold WHERE user_id = ? AND change_date = ? AND gold_source = ?';
                     $isSignLastDay = $this->db->getOne($sql, $userId, date('Y-m-d', strtotime("-1 day")), $type);
@@ -53,11 +60,9 @@ Class Task extends AbstractController {
                     }
                     //获取奖励金币范围
                     $sql = 'SELECT award_min FROM t_award_config WHERE config_type = :type AND counter_min = :counter';
-                    $awardRow = $this->db->getRow($sql, array('type' => 'sign', 'counter' => (($checkInDays + 1) % 7) ?? 7));
-                    
-                    $sql = 'INSERT INTO t_gold2receive SET user_id = ?, receive_date = ?, receive_type = ?, receive_gold = ?';
-                    $this->db->exec($sql, $userId, $today, $type, $awardRow['award_min']);
-                    $todayInfo = array('id' => $this->db->lastInsertId(), 'num' => $awardRow['award_min'], 'isReceive' => 0, 'isDouble' => 0);
+                    $awardRow = $this->db->getRow($sql, array('type' => $receiveType, 'counter' => (($checkInDays + 1) % 7) ?? 7));
+                    $goldId = $this->model->goldReceive->insert(array('user_id' => $userId, 'gold' => $awardRow['award_min'], 'type' => $type));
+                    $todayInfo = array('id' => $goldId, 'num' => $awardRow['award_min'], 'isReceive' => 0, 'isDouble' => 0);
                 }
                 $fromDate = $today;
                 $checkInReturn = array('checkInDays' => $checkInDays, 'checkInInfo' => array());
@@ -76,8 +81,8 @@ Class Task extends AbstractController {
                 $checkInInfo[] = array_merge(array('isToday' => 1), $todayInfo);
                 
                 $i = 0;
-                $sql = 'SELECT counter_min, award_min FROM t_award_config WHERE config_type = "sign" ORDER BY config_id ASC';
-                $checkInConfigList = $this->db->getAll($sql);
+                $sql = 'SELECT counter_min, award_min FROM t_award_config WHERE config_type = ? ORDER BY config_id ASC';
+                $checkInConfigList = $this->db->getAll($sql, $receiveType);
                 foreach ($checkInConfigList as $config) {
                     $checkInReturn['checkInInfo'][] = array_merge(array('day' => $config['counter_min'], 'award' => $config['award_min']), $checkInInfo[$i] ?? array());
                     $i++;
@@ -116,9 +121,7 @@ Class Task extends AbstractController {
                             $gold = rand($activityInfo['activity_award_min'], $activityInfo['activity_award_max']);
                         }
                     }
-                    
-                    $sql = 'INSERT INTO t_gold2receive SET user_id = ?, receive_date = ?, receive_type = ?, end_time = ?, receive_gold = ?';
-                    $this->db->exec($sql, $userId, $today, $type, $endTime, $gold);
+                    $this->model->goldReceive->insert(array('user_id' => $userId, 'gold' => $gold, 'type' => $type, 'end_time' => $endTime));
                 }
                 $sql = 'SELECT * FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = ? ORDER BY receive_id DESC LIMIT 1';
                 $historyInfo = $this->db->getRow($sql, $userId, $today, $type);

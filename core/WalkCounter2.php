@@ -33,15 +33,8 @@ class WalkCounter2 extends AbstractModel
     public function getReturnInfo ($type) {
         switch ($type) {
             case 'walk':
-                $sql = 'SELECT COUNT(gr.receive_id) count, MIN(g.create_time) min
-                    FROM t_gold2receive gr
-                    LEFT JOIN t_gold g ON gr.receive_id = g.relation_id AND g.gold_source = gr.receive_type
-                    WHERE gr.user_id = ? 
-                    AND gr.receive_date = ? 
-                    AND gr.receive_type = "walk" 
-                    AND gr.receive_status = 1
-                    AND g.create_time >= ?';
-                $receivedInfo = $this->db->getRow($sql, $this->userId, $this->todayDate, date('Y-m-d H:i:s', strtotime('-' . $this->walkAwardLimitTime . ' minutes')));
+                $receivedInfo = $this->model->gold->walkReceive($this->userId, date('Y-m-d H:i:s', strtotime('-' . $this->walkAwardLimitTime . ' minutes')));
+
                 if ($this->walkAwardLimitCount <= $receivedInfo['count']) {
                     $return['list'] = array();
                     $return['getTime'] = strtotime('+' . $this->walkAwardLimitTime . ' minutes', strtotime($receivedInfo['min'])) * 1000;
@@ -114,6 +107,7 @@ class WalkCounter2 extends AbstractModel
         //插入阶段步数奖励待领取
         $sql = 'SELECT MAX(receive_walk) FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = "walk_stage"';
         $stageStep = $this->db->getOne($sql, $this->userId, $this->todayDate) ?: 0;
+        $insertData = array();
         foreach ($this->stageReward as $step => $gold) {
             if ($step > $this->stepCount) {
                 break;
@@ -133,6 +127,10 @@ class WalkCounter2 extends AbstractModel
                 'receive_date' => $this->todayDate, 
                 'receive_gold' => $gold,
                 'receive_type' => 'walk_stage'));
+            $insertData[] = array($this->userId, $gold, $step, '\'walk_stage\'', '\'' . $this->todayDate . '\'');
+        }
+        if ($insertData) {
+            $this->model->goldReceive->batchInsert($insertData);
         }
     }
     
@@ -169,6 +167,7 @@ class WalkCounter2 extends AbstractModel
 
         $sql = 'SELECT COUNT(receive_id) FROM t_gold2receive WHERE user_id = ? AND receive_date = ? AND receive_type = "walk" AND receive_status = 0';
         $notReceiveCount = $this->db->getOne($sql, $this->userId, $this->todayDate);
+        $insertData = array();
 
         while ($residualStep >= $this->rewardCounter) {
             if ($notReceiveCount >= 5) {
@@ -195,8 +194,13 @@ class WalkCounter2 extends AbstractModel
                 'receive_date' => $this->todayDate,
                 'receive_gold' => rand($awardRange['award_min'], $awardRange['award_max']),
                 'receive_type' => 'walk'));
+            $insertData[] = array($this->userId, rand($awardRange['award_min'], $awardRange['award_max']), $this->rewardCounter * $count, '\'walk\'', '\'' . $this->todayDate . '\'');
             $notReceiveCount++;
             $residualStep -= $this->rewardCounter;
         }
+        if ($insertData) {
+            $this->model->goldReceive->batchInsert($insertData);
+        }
+
     }
 }

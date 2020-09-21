@@ -56,8 +56,7 @@ Class ApiController extends AbstractController {
             $result = $this->db->exec($sql, array('source' => 'tuia', 'type' => 'tuia_farm', 'order_id' => $_POST['orderId'], 'user_id' => $userInfo['user_id'], 'params' => json_encode($_POST)));
             if ($result) {
                 //添加金币
-                $sql = 'INSERT INTO t_gold SET user_id = :user_id, change_gold = :change_gold, gold_source = :gold_source, change_type = :change_type, relation_id = :relation_id, change_date = :change_date';
-                $this->db->exec($sql, array('user_id' => $userInfo['user_id'], 'change_gold' => $_POST['score'], 'gold_source' => 'tuia_farm', 'change_type' => 'in', 'relation_id' => $this->db->lastInsertId(), 'change_date' => date('Y-m-d')));
+                $this->model->gold->updateGold(array( 'user_id' => $userInfo['user_id'], 'gold' => $_POST['score'], 'source' => 'tuia_farm', 'type' => 'in', 'relation_id' => $this->db->lastInsertId()));
                 //返回数据
                 $return = array('code' => '0', 'msg' => '', 'orderId' => $_POST['orderId'], 'extParam' => array('deviceId' => $userInfo['imei'], 'userId' => $_POST['userId']));
                 return json_encode($return);
@@ -128,8 +127,7 @@ Class ApiController extends AbstractController {
             $result = $this->db->exec($sql, array('source' => 'yuwan', 'type' => 'yuwan_box', 'order_id' => $_POST['orderNo'], 'user_id' => $userInfo['user_id'], 'params' => json_encode($_POST)));
             if ($result) {
                 //添加金币
-                $sql = 'INSERT INTO t_gold SET user_id = :user_id, change_gold = :change_gold, gold_source = :gold_source, change_type = :change_type, relation_id = :relation_id, change_date = :change_date';
-                $this->db->exec($sql, array('user_id' => $userInfo['user_id'], 'change_gold' => $rewardData['userCurrency'] ?? 0, 'gold_source' => 'yuwan_box', 'change_type' => 'in', 'relation_id' => $this->db->lastInsertId(), 'change_date' => date('Y-m-d')));
+                $this->model->gold->updateGold(array('user_id' => $userInfo['user_id'], 'gold' => $rewardData['userCurrency'] ?? 0, 'source' => 'yuwan_box', 'type' => 'in', 'relation_id' => $this->db->lastInsertId()));
                 //返回数据
                 $return = array('code' => '0', 'msg' => '');
                 return json_encode($return);

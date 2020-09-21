@@ -34,12 +34,7 @@ foreach ($invitedList as $invitedInfo) {
     $sql = 'SELECT config_id, award_min FROM t_award_config WHERE config_type = ? AND counter_min = ?';
     $invitedAwardInfo = $db->getRow($sql, 'invited_count', $invitedCount);
     if ($invitedAwardInfo) {
-        $model->user2->updateGold(array(
-            'user_id' => $invitedInfo['user_id'],
-            'gold' => $invitedAwardInfo['award_min'],
-            'source' => 'invited_count',
-            'type' => 'in',
-            'relation_id' => $invitedAwardInfo['config_id']));
+        $model->gold->updateGold(array( 'user_id' => $invitedInfo['user_id'], 'gold' => $invitedAwardInfo['award_min'], 'source' => 'invited_count', 'type' => 'in', 'relation_id' => $invitedAwardInfo['config_id']));
     }
     $sql = 'REPLACE INTO t_variable SET variable_name = ?, variable_value = ?';
     $db->exec($sql, $variableName, $invitedInfo['id']);

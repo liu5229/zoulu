@@ -93,23 +93,11 @@ Class Activity2Controller extends AbstractController {
                 $sql = 'SELECT * FROM t_gold2receive WHERE user_id = ? AND receive_type = "drink" AND receive_walk = ? AND receive_date = ?';
                 $drinkDetail = $this->db->getRow($sql, $this->userId, $drinkInfo['counter_min'], $todayDate);
                 if ($drinkDetail) {
-                    $tempArr = array(
-                        'id' => $drinkDetail['receive_id'],
-                        'num' => $drinkDetail['receive_gold'],
-                        'type' => 'drink',
-                        'isReceived' => $drinkDetail['receive_status']);
+                    $tempArr = array('id' => $drinkDetail['receive_id'], 'num' => $drinkDetail['receive_gold'], 'type' => 'drink', 'isReceived' => $drinkDetail['receive_status']);
                 } else {
-                    $sql = 'INSERT INTO t_gold2receive SET user_id = ?,
-                            receive_gold = ?,
-                            receive_walk = ?,
-                            receive_type = "drink",
-                            receive_date = ?';
-                    $this->db->exec($sql, $this->userId, $drinkInfo['award_min'], $drinkInfo['counter_min'], $todayDate);
-                    $tempArr = array(
-                        'id' => $this->db->lastInsertId(),
-                        'num' => $drinkInfo['award_min'],
-                        'type' => 'drink',
-                        'isReceived' => 0);
+                    $goldId = $this->model->goldReceive->insert(array('user_id' => $this->userId, 'gold' => $drinkInfo['award_min'], 'walk' => $drinkInfo['counter_min'], 'type' => 'drink'));
+                    $tempArr = array('id' => $goldId, 'num' => $drinkInfo['award_min'], 'type' => 'drink', 'isReceived' => 0);
+
                 }
                 $tempArr['isCurrent'] = 0;
                 if (!$isCurrent) {
@@ -134,12 +122,7 @@ Class Activity2Controller extends AbstractController {
         
         $todayDate = date('Y-m-d');
         //当前次数 剩余次数  抽奖金币信息
-        $sql = 'SELECT receive_id, receive_gold, receive_type, receive_status
-                FROM t_gold2receive
-                WHERE receive_date = ? 
-                AND user_id = ? 
-                AND receive_type = ? 
-                ORDER BY receive_status ASC, receive_id DESC';
+        $sql = 'SELECT receive_id, receive_gold, receive_type, receive_status FROM t_gold2receive WHERE receive_date = ? AND user_id = ? AND receive_type = ? ORDER BY receive_status ASC, receive_id DESC';
         $lotteryReceiveInfo = $this->db->getAll($sql, $todayDate, $this->userId, 'lottery');
         if ($lotteryReceiveInfo) {
             $currentAward = current($lotteryReceiveInfo);
@@ -147,13 +130,8 @@ Class Activity2Controller extends AbstractController {
             $return['currentCount'] = count($lotteryReceiveInfo) - ($currentAward['receive_status'] ? 0 : 1);
         } else {
             $award = rand($lotteryActInfo['activity_award_min'], $lotteryActInfo['activity_award_max']);
-            $sql = 'INSERT INTO t_gold2receive SET
-                    receive_date = ?,
-                    user_id = ?,
-                    receive_type = "lottery",
-                    receive_gold = ?';
-            $this->db->exec($sql, $todayDate, $this->userId, $award);
-            $return['currentAward'] = array('id' => $this->db->lastInsertId(), 'num' => (string) $award, 'type' => 'lottery');
+            $goldId = $this->model->goldReceive->insert(array('user_id' => $this->userId, 'gold' => $award, 'type' => 'lottery'));
+            $return['currentAward'] = array('id' => $goldId, 'num' => (string) $award, 'type' => 'lottery');
             $return['currentCount'] = 0;
         }
         $return['restCount'] = $lotteryActInfo['activity_max'] - $return['currentCount'];
@@ -216,12 +194,7 @@ Class Activity2Controller extends AbstractController {
                 return new ApiReturn('', 401, '您已领取过该奖励');
             }
             $doubleStatus = $this->inputData['isDouble'] ?? 0;
-            $updateStatus = $this->model->user2->updateGold(array(
-                'user_id' => $this->userId,
-                'gold' => $awardInfo['receive_gold'] * ($doubleStatus + 1),
-                'source' => $awardInfo['receive_type'],
-                'type' => 'in',
-                'relation_id' => $awardInfo['receive_id']));
+            $updateStatus = $this->model->gold->updateGold(array('user_id' => $this->userId, 'gold' => $awardInfo['receive_gold'] * ($doubleStatus + 1), 'source' => $awardInfo['receive_type'], 'type' => 'in', 'relation_id' => $awardInfo['receive_id']));
             if (TRUE === $updateStatus) {
                 $sql = 'UPDATE t_gold2receive SET receive_status = 1, is_double = ? WHERE receive_id = ?';
                 $this->db->exec($sql, $doubleStatus, $awardInfo['receive_id']);
@@ -229,14 +202,8 @@ Class Activity2Controller extends AbstractController {
                 return $updateStatus;
             }
         } else {
-            //填写0金币的记录 
-            $sql = 'INSERT INTO t_gold2receive SET
-                    receive_date = ?,
-                    user_id = ?,
-                    receive_type = "lottery",
-                    receive_gold = 0,
-                    receive_status = 1';
-            $this->db->exec($sql, $todayDate, $this->userId);
+            //填写0金币的记录
+            $this->model->goldReceive->insert(array('user_id' => $this->userId, 'gold' => 0, 'type' => 'lottery', 'status' => 1));
         }
         
         $currentCount = $lotteryReceiveInfo + 1;
@@ -244,26 +211,14 @@ Class Activity2Controller extends AbstractController {
         if ($restCount) {
             if ($awardInfo) {
                 //生成下一个
-                $award = rand($lotteryActInfo['activity_award_min'], $lotteryActInfo['activity_award_max']);
-                $sql = 'INSERT INTO t_gold2receive SET
-                        receive_date = ?,
-                        user_id = ?,
-                        receive_type = "lottery",
-                        receive_gold = ?';
-                $this->db->exec($sql, $todayDate, $this->userId, $award);
+                $this->model->goldReceive->insert(array('user_id' => $this->userId, 'gold' => rand($lotteryActInfo['activity_award_min'], $lotteryActInfo['activity_award_max']), 'type' => 'lottery'));
             }
         }
         
         $sql = 'SELECT config_id, award_min FROM t_award_config WHERE config_type = ? AND counter_min = ?';
         $lotteryCountAwardInfo = $this->db->getRow($sql, 'lottery_count', $currentCount);
         if ($lotteryCountAwardInfo) {
-            $sql = 'INSERT INTO t_gold2receive SET
-                    receive_date = ?,
-                    user_id = ?,
-                    receive_type = "lottery_count",
-                    receive_gold = ?,
-                    receive_walk = ?';
-            $this->db->exec($sql, $todayDate, $this->userId, $lotteryCountAwardInfo['award_min'], $lotteryCountAwardInfo['config_id']);
+            $this->model->goldReceive->insert(array('user_id' => $this->userId, 'gold' => $lotteryCountAwardInfo['award_min'], 'type' => 'lottery_count', 'walk' => $lotteryCountAwardInfo['config_id']));
         }
         
         $goldInfo = $this->model->user2->getGold($this->userId);
@@ -289,29 +244,13 @@ Class Activity2Controller extends AbstractController {
                 if ($nowTime <= strtotime($todayDate . $config['max'])) {
                     $current = 1;
                 }
-                $sql = 'INSERT INTO t_gold2receive (user_id, receive_gold, receive_walk, receive_type, receive_date)
-                        SELECT :user_id, :receive_gold, :receive_walk, :receive_type, :receive_date FROM DUAL
-                        WHERE NOT EXISTS (SELECT receive_id FROM t_gold2receive WHERE user_id = :user_id AND receive_walk = :receive_walk AND receive_type = :receive_type AND receive_date = :receive_date)';
-                $return = $this->db->exec($sql, array(
-                    'user_id' => $this->userId,
-                    'receive_gold' => $clockinInfo['award_min'],
-                    'receive_walk' => $clockinInfo['counter_min'],
-                    'receive_type' => 'clockin',
-                    'receive_date' => $todayDate));
-                if ($return) {
-                    $tempArr = array(
-                        'id' => $this->db->lastInsertId(),
-                        'num' => $clockinInfo['award_min'],
-                        'type' => 'clockin',
-                        'isReceived' => 0);
+                $sql = 'SELECT * FROM t_gold2receive WHERE user_id = ? AND receive_walk = ? AND receive_type = ? AND receive_date = ?';
+                $clockinDetail = $this->db->getRow($sql, $this->userId, $clockinInfo['counter_min'], 'clockin', $todayDate);
+                if ($clockinDetail) {
+                    $tempArr = array('id' => $clockinDetail['receive_id'], 'num' => $clockinDetail['receive_gold'], 'type' => 'clockin', 'isReceived' => $clockinDetail['receive_status']);
                 } else {
-                    $sql = 'SELECT * FROM t_gold2receive WHERE user_id = ? AND receive_walk = ? AND receive_type = ? AND receive_date = ?';
-                    $clockinDetail = $this->db->getRow($sql, $this->userId, $clockinInfo['counter_min'], 'clockin', $todayDate);
-                    $tempArr = array(
-                        'id' => $clockinDetail['receive_id'],
-                        'num' => $clockinDetail['receive_gold'],
-                        'type' => 'clockin',
-                        'isReceived' => $clockinDetail['receive_status']);
+                    $return = $this->model->goldReceive->insert(array('user_id' => $this->userId, 'gold' => $clockinInfo['award_min'], 'walk' => $clockinInfo['counter_min'], 'type' => 'clockin'));
+                    $tempArr = array('id' => $return, 'num' => $clockinInfo['award_min'], 'type' => 'clockin', 'isReceived' => 0);
                 }
             }
             $returnList['list'][] = array_merge($tempArr, array('award' => $clockinInfo['award_min'], 'isCurrent' => $current));
@@ -325,30 +264,13 @@ Class Activity2Controller extends AbstractController {
         foreach ($clockinTotalList as $clockinTotalInfo) {
             $tempArr = array();
             if ($clockinTotalInfo['counter_min'] <= $receiveClockinCount) {
-                $sql = 'INSERT INTO t_gold2receive (user_id, receive_gold, receive_walk, receive_type, receive_date)
-                        SELECT :user_id, :receive_gold, :receive_walk, :receive_type, :receive_date FROM DUAL
-                        WHERE NOT EXISTS (SELECT receive_id FROM t_gold2receive
-                        WHERE user_id = :user_id AND receive_walk = :receive_walk AND receive_type = :receive_type AND receive_date = :receive_date)';
-                $return = $this->db->exec($sql, array(
-                    'user_id' => $this->userId,
-                    'receive_gold' => $clockinTotalInfo['award_min'],
-                    'receive_walk' => $clockinTotalInfo['counter_min'],
-                    'receive_type' => 'clockin_count',
-                    'receive_date' => $todayDate));
-                if ($return) {
-                    $tempArr = array(
-                        'id' => $this->db->lastInsertId(),
-                        'num' => $clockinTotalInfo['award_min'],
-                        'type' => 'clockin_count',
-                        'isReceived' => 0);
+                $sql = 'SELECT * FROM t_gold2receive WHERE user_id = ? AND receive_walk = ? AND receive_type = ? AND receive_date = ?';
+                $clockinTotalDetail = $this->db->getRow($sql, $this->userId, $clockinTotalInfo['counter_min'], 'clockin_count', $todayDate);
+                if ($clockinTotalDetail) {
+                    $tempArr = array('id' => $clockinTotalDetail['receive_id'], 'num' => $clockinTotalDetail['receive_gold'], 'type' => 'clockin_count', 'isReceived' => $clockinTotalDetail['receive_status']);
                 } else {
-                    $sql = 'SELECT * FROM t_gold2receive WHERE user_id = ? AND receive_walk = ? AND receive_type = ? AND receive_date = ?';
-                    $clockinTotalDetail = $this->db->getRow($sql, $this->userId, $clockinTotalInfo['counter_min'], 'clockin_count', $todayDate);
-                    $tempArr = array(
-                        'id' => $clockinTotalDetail['receive_id'],
-                        'num' => $clockinTotalDetail['receive_gold'],
-                        'type' => 'clockin_count',
-                        'isReceived' => $clockinTotalDetail['receive_status']);
+                    $return = $this->model->goldReceive->insert(array('user_id' => $this->userId, 'gold' => $clockinTotalInfo['award_min'], 'walk' => $clockinTotalInfo['counter_min'], 'type' => 'clockin_count'));
+                    $tempArr = array('id' => $return, 'num' => $clockinTotalInfo['award_min'], 'type' => 'clockin_count', 'isReceived' => 0);
                 }
             }
             $returnList['total'][] = array_merge($tempArr, array('count' => $clockinTotalInfo['counter_min']));
@@ -498,7 +420,7 @@ Class Activity2Controller extends AbstractController {
                 return new ApiReturn('', 401, '您已领取过该奖励');
             }
             $doubleStatus = $this->inputData['isDouble'] ?? 0;
-            $updateStatus = $this->model->user2->updateGold(array('user_id' => $this->userId, 'gold' => $awardInfo['receive_gold'] * ($doubleStatus + 1), 'source' => 'scratch', 'type' => 'in', 'relation_id' => $awardInfo['id']));
+            $updateStatus = $this->model->gold->updateGold(array('user_id' => $this->userId, 'gold' => $awardInfo['receive_gold'] * ($doubleStatus + 1), 'source' => 'scratch', 'type' => 'in', 'relation_id' => $awardInfo['id']));
             if (TRUE === $updateStatus) {
                 $sql = 'UPDATE t_activity_scratch SET receive_status = 1, is_double = ? WHERE id = ?';
                 $this->db->exec($sql, $doubleStatus, $awardInfo['id']);

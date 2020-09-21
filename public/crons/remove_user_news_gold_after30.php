@@ -17,23 +17,15 @@ $userIdStart = $db->getOne($sql, $variableName) ?: 0;
 
 $createTime = date('Y-m-d 23:59:59', strtotime('-30 day'));
 
-$sql = 'SELECT u.user_id, g.change_gold, g.gold_id
-        FROM t_user u
-        LEFT JOIN t_withdraw w ON w.user_id = u.user_id
-        LEFT JOIN t_gold g ON g.user_id = u.user_id AND g.gold_source = "newer"
-        WHERE w.withdraw_id IS NULL
-        AND u.user_id > ?
-        AND u.create_time <= ?';
-$userList = $db->getAll($sql, $userIdStart, $createTime);
+$userList = $model->gold->noWithdrawUser($userIdStart, $createTime);
 foreach ($userList as $userInfo) {
-    $params = array('user_id' => $userInfo['user_id'],
-        'gold' => $userInfo['change_gold'] ?: 0,
-        'source' => "newer_invalid",
-        'type' => "out",
-        'relation_id' => $userInfo['gold_id'] ?: 0
-    );
-    $model->user2->updateGold($params);
-    
+    $sql = 'SELECT COUNT(withdraw_id) FROM t_withdraw WHERE user_id = ?';
+    if ($db->getOne($sql, $userInfo['user_id'])) {
+        $sql = 'SELECT change_gold, gold_id FROM t_gold WHERE user_id = ? AND g.gold_source = "newer"';
+        $newerGold = $db->getRow($sql, $userInfo['user_id']);
+
+        $model->gold->updateGold(array('user_id' => $userInfo['user_id'], 'gold' => $newerGold['change_gold'] ?: 0, 'source' => "newer_invalid", 'type' => "out", 'relation_id' => $newerGold['gold_id'] ?: 0));
+    }
     $sql = 'REPLACE INTO t_variable SET variable_name = ?, variable_value = ?';
     $db->exec($sql, $variableName, $userInfo['user_id']);
 }

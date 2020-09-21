@@ -60,12 +60,7 @@ Class AdminUserController extends AbstractController {
             $sql = "INSERT INTO t_gold_change_log SET type = :type, gold = :gold, remark = :remark, user_id = :user_id";
             $this->db->exec($sql, array('type' => $_POST['change_type'], 'gold' => $_POST['change_gold'], 'remark' => $_POST['change_remark'],'user_id' => $_POST['id']));
             $relationId = $this->db->lastInsertId();
-            $return = $this->model->user2->updateGold(array(
-                'user_id' => $_POST['id'],
-                'gold' => $_POST['change_gold'],
-                'source' => 'system',
-                'type' => $_POST['change_type'],
-                'relation_id' => $relationId));
+            $this->model->gold->updateGold(array('user_id' => $_POST['id'],'gold' => $_POST['change_gold'], 'source' => 'system', 'type' => $_POST['change_type'], 'relation_id' => $relationId));
             return array();
         }
         throw new \Exception("Error");

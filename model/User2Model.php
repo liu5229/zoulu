@@ -70,10 +70,7 @@ class User2Model extends AbstractModel {
             if (!$goldInfo['activity_status']) {
                 $gold = 0;
             } else {
-                $this->updateGold(array('user_id' => $userId,
-                    'gold' => $goldInfo['activity_award_min'],
-                    'source' => 'newer',
-                    'type' => 'in'));
+                $this->model->gold->updateGold(array('user_id' => $userId, 'gold' => $goldInfo['activity_award_min'], 'source' => 'newer', 'type' => 'in'));
                 $gold = $goldInfo['activity_award_min'];
             }
             
@@ -91,71 +88,6 @@ class User2Model extends AbstractModel {
                 'invitedCode' => $invitedCode
             );
         }
-    }
-    
-    /**
-     * 更新用户金币
-     * @param type $params
-     * @return boolean|\ApiReturn
-     */
-    public function updateGold($params = array()) {
-        $todayDate = date('Y-m-d');
-        $userState = $this->userInfo($params['user_id'], 'user_status');
-        if (!$userState) {
-            return new ApiReturn('', 203, '抱歉您的账户已被冻结');
-        }
-        if ('in' == $params['type']) {
-            $notInEveryTotal = array("newer", "wechat", "system", "invited_count", 'invited', 'do_invite');
-            $sql = 'SELECT SUM(change_gold)
-                    FROM t_gold
-                    WHERE user_id = ?
-                    AND change_type = "in"
-                    AND change_date = ?
-                    AND gold_source NOT IN ("' . implode('", "', $notInEveryTotal) .'")';
-            $goldToday = $this->db->getOne($sql, $params['user_id'], $todayDate);
-            if ($goldToday > $this->maxGoldEveryDay) {
-                return new ApiReturn('', 202, '抱歉您已达到今日金币获取上限');
-            }
-        }
-        if ('sign' == $params['type']) {
-            $sql = "INSERT INTO t_gold SET
-                    user_id = :user_id,
-                    change_gold = :change_gold,
-                    gold_source = :gold_source,
-                    change_type = :change_type,
-                    relation_id = :relation_id,
-                    change_date = :change_date";
-            $this->db->exec($sql, array(
-                'user_id' => $params['user_id'],
-                'change_gold' => $params['gold'],
-                'gold_source' => $params['source'],
-                'change_type' => $params['type'],
-                'relation_id' => $params['relation_id'] ?? 0,
-                'change_date' => $todayDate
-            ));
-        } else {
-            $sql = "INSERT INTO t_gold (user_id, change_gold, gold_source, change_type, relation_id, change_date) 
-                    SELECT :user_id, :change_gold, :gold_source, :change_type, :relation_id, :change_date
-                    WHERE NOT EXISTS(
-                    SELECT * 
-                    FROM t_gold 
-                    WHERE user_id = :user_id 
-                    AND change_gold = :change_gold 
-                    AND gold_source = :gold_source 
-                    AND change_type = :change_type
-                    AND relation_id = :relation_id
-                    AND change_date = :change_date)";
-            $this->db->exec($sql, array(
-                'user_id' => $params['user_id'],
-                'change_gold' => $params['gold'],
-                'gold_source' => $params['source'],
-                'change_type' => $params['type'],
-                'relation_id' => $params['relation_id'] ?? 0,
-                'change_date' => $todayDate
-            ));
-        }
-        
-        return TRUE;
     }
 
     /**
