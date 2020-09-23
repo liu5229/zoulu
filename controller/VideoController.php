@@ -5,7 +5,7 @@ Class VideoController extends AbstractController {
     
     public function init() {
         parent::init();
-        $userId = $this->model->user->verifyToken();
+        $userId = $this->model->user2->verifyToken();
         if ($userId instanceof apiReturn) {
             return $userId;
         }
