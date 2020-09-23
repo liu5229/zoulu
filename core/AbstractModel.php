@@ -17,6 +17,9 @@ abstract class AbstractModel {
                     $this->temp['db']->exec("SET time_zone = '+8:00'");
                     $this->temp['db']->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
                     break;
+                case 'model' :
+                    $this->temp['model'] = new Model();
+                    break;
                 default :
                     throw new \Exception("Can't find model plugin " . $name);
             }
