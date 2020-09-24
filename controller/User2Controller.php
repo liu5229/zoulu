@@ -358,7 +358,6 @@ Class User2Controller extends AbstractController {
         foreach (array('image1', 'image2', 'image3') as $image) {
             if (isset($this->inputData[$image])) {
                 $$image = $this->uploadImage($this->inputData[$image]);
-                var_dump($$image);
                 if ($$image instanceof apiReturn) {
                     return $$image;
                 }
@@ -453,6 +452,7 @@ Class User2Controller extends AbstractController {
 
             $oss = new Oss();
             $uploadReturn = $oss->upload('upload/' . $saveFile, '/tmp/' . $saveFile);
+            var_dump($uploadReturn);
             if ($uploadReturn !== TRUE) {
                 return new ApiReturn('', 314,'上传失败');
             }
