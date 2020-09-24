@@ -452,7 +452,6 @@ Class User2Controller extends AbstractController {
 
             $oss = new Oss();
             $uploadReturn = $oss->upload('upload/' . $saveFile, '/tmp/' . $saveFile);
-            var_dump($uploadReturn);
             if ($uploadReturn !== TRUE) {
                 return new ApiReturn('', 314,'上传失败');
             }
