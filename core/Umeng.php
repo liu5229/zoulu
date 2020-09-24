@@ -51,7 +51,7 @@ Class Umeng {
         $data = json_decode(curl_exec ( $ch ));
         curl_close ( $ch );
         if (isset($data->suc) && TRUE === $data->suc) {
-            return $data->sorce;
+            return $data->score;
         }
         return FALSE;
     }
