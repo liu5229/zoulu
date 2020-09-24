@@ -300,7 +300,7 @@ Class Walk2Controller extends AbstractController {
             $umengReturn = $umengApi->verify($payInfo['umeng_token']);
             $withdrawalAmount = $this->inputData['amount'];
             $withdrawalGold = $this->inputData['amount'] * $this->withdrawalRate;
-            if (TRUE !== $umengReturn && isset($umengReturn->suc) && TRUE === $umengReturn->suc && $umengReturn->score < 90) {
+            if ($umengReturn && $umengReturn < 90) {
                 //update user invild && insert request failed
                 $sql = 'UPDATE t_user SET user_status = 0 WHERE user_id = ?';
                 $this->db->exec($sql, $this->userId);

@@ -13,7 +13,7 @@ Class Umeng {
     
     public function verify ($zToken) {
         if (!$zToken) {
-            return TRUE;
+            return FALSE;
         }
         $url = 'param2/1/com.umeng.trustid/umeng.trustid.getAntiScoreByZtoken/' . $this->apiKey;
         $urlRequest = 'http://gateway.open.umeng.com/openapi/' . $url;
@@ -48,10 +48,12 @@ Class Umeng {
         curl_setopt ( $ch, CURLOPT_POSTFIELDS, $paramToSign );
         curl_setopt ( $ch, CURLOPT_SSL_VERIFYHOST, false );
         curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, false );
-        $data = curl_exec ( $ch );
+        $data = json_decode(curl_exec ( $ch ));
         curl_close ( $ch );
-//        var_dump(json_decode($data));
-        return json_decode($data);
+        if (isset($data->suc) && TRUE === $data->suc) {
+            return $data->sorce;
+        }
+        return FALSE;
     }
     
 }

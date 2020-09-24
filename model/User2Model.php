@@ -23,11 +23,7 @@ class User2Model extends AbstractModel {
             $goldInfo = $this->getGold($userInfo['user_id']);
             if (isset($deviceInfo['umengToken']) && $deviceInfo['umengToken']) {
                 $umengClass = new Umeng();
-                $score = 0;
-                $umengReturn = $umengClass->verify($deviceInfo['umengToken']);
-                if (TRUE !== $umengReturn && isset($umengReturn->suc) && TRUE === $umengReturn->suc) {
-                    $score = $umengReturn->score;
-                }
+                $score = $umengClass->verify($deviceInfo['umengToken']) ?: 0;
                 $sql = 'UPDATE t_user SET umeng_token = ?, umeng_score = ? WHERE user_id = ?';
                 $this->db->exec($sql, $deviceInfo['umengToken'], $score, $userInfo['user_id']);
             }
@@ -56,10 +52,7 @@ class User2Model extends AbstractModel {
             $score = 0;
             if (isset($deviceInfo['umengToken']) && $deviceInfo['umengToken']) {
                 $umengClass = new Umeng();
-                $umengReturn = $umengClass->verify($deviceInfo['umengToken']);
-                if (TRUE !== $umengReturn && isset($umengReturn->suc) && TRUE === $umengReturn->suc) {
-                    $score = $umengReturn->score;
-                }
+                $score = $umengClass->verify($deviceInfo['umengToken']) ?: 0;
             }
             $nickName = '游客' . substr($deviceId, -2) . date('Ymd');//游客+设备号后2位+用户激活日期
             $this->db->exec($sql, $deviceId, $nickName, $deviceInfo['source'] ?? '', $reyunAppName, $deviceInfo['VAID'] ?? '', $deviceInfo['AAID'] ?? '', $deviceInfo['OAID'] ?? '', $deviceInfo['brand'] ?? '', $deviceInfo['model'] ?? '', $deviceInfo['SDKVersion'] ?? '', $deviceInfo['AndroidId'] ?? '', $deviceInfo['IMEI'] ?? '', $deviceInfo['MAC'] ?? '', $invitedCode, $deviceInfo['umengToken'] ?? '', $score);
