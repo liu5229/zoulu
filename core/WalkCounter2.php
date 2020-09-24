@@ -33,11 +33,11 @@ class WalkCounter2 extends AbstractModel
     public function getReturnInfo ($type) {
         switch ($type) {
             case 'walk':
-                $receivedInfo = $this->model->gold->walkReceive($this->userId, date('Y-m-d H:i:s', strtotime('-' . $this->walkAwardLimitTime . ' minutes')));
+                $receivedInfo = $this->model->gold->walkReceive($this->userId, strtotime('-' . $this->walkAwardLimitTime . ' minutes'), $this->walkAwardLimitCount);
 
                 if ($this->walkAwardLimitCount <= $receivedInfo['count']) {
                     $return['list'] = array();
-                    $return['getTime'] = strtotime('+' . $this->walkAwardLimitTime . ' minutes', strtotime($receivedInfo['min'])) * 1000;
+                    $return['getTime'] = strtotime('+' . $this->walkAwardLimitTime . ' minutes', $receivedInfo['min']) * 1000;
                     $return['serverTime'] = time() * 1000;
                 } else {
                     $sql = 'SELECT receive_id id, receive_gold num, receive_type type 
