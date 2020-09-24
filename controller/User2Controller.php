@@ -358,6 +358,7 @@ Class User2Controller extends AbstractController {
         foreach (array('image1', 'image2', 'image3') as $image) {
             if (isset($this->inputData[$image])) {
                 $$image = $this->uploadImage($this->inputData[$image]);
+                var_dump($$image);
                 if ($$image instanceof apiReturn) {
                     return $$image;
                 }
