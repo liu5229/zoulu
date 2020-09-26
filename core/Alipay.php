@@ -42,7 +42,7 @@ class Alipay {
 //        $accessToken = 'kuaijieB44d5dccae72a41719abd742da87ffX53';
         $request = new \AlipayUserInfoShareRequest ();
         $result = $this->aop->execute ( $request , $token );
-        var_dump($result);
+//        var_dump($result);
         if (isset($result->error_response)) {
             return FALSE;
         }
