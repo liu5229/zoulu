@@ -23,7 +23,6 @@ Class AdminAdController extends AbstractController {
 
                 $oss = new Oss();
                 $uploadReturn = $oss->upload($uploadImg, IMG_DIR . $_POST['advertise_image']['file']['response']['data'][0]['file']['name']);
-                var_dump($uploadReturn);
                 if ($uploadReturn !== TRUE) {
                     throw new \Exception("Upload Oss failure");
                 }
