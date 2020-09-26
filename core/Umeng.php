@@ -49,6 +49,7 @@ Class Umeng {
         curl_setopt ( $ch, CURLOPT_SSL_VERIFYHOST, false );
         curl_setopt ( $ch, CURLOPT_SSL_VERIFYPEER, false );
         $data = json_decode(curl_exec ( $ch ));
+        curl_close ( $ch );
         if (isset($data->suc) && TRUE === $data->suc && is_numeric($data->score)) {
             return $data->score;
         }
