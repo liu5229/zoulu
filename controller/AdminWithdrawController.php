@@ -4,6 +4,11 @@ Class AdminWithdrawController extends AbstractController {
     public function listAction () {
         $whereArr = array('1 = 1');
         $dataArr = array();
+
+        if (isset($_POST['userId']) && $_POST['userId']) {
+            $whereArr[] = 'w.user_id = :user_id';
+            $dataArr['user_id'] = $_POST['userId'];
+        }
         
         if (isset($_POST['status']) && $_POST['status']) {
             $whereArr[] = 'w.withdraw_status = :withdraw_status';
