@@ -15,15 +15,18 @@ while (true) {
     $withdrawList = $db->getAll($sql);
 
     foreach ($withdrawList as $withdrawInfo) {
-        $returnStatus = $wechatPay->transfer($withdrawInfo['withdraw_amount'], $withdrawInfo['wechat_openid']);
-        if (TRUE === $returnStatus) {
-            $model->gold->updateGold(array('user_id' => $withdrawInfo['user_id'], 'gold' => $withdrawInfo['withdraw_gold'], 'source' => "withdraw", 'type' => "out", 'relation_id' => $withdrawInfo['withdraw_id']));
-            $sql = 'UPDATE t_withdraw SET withdraw_status = "success" WHERE withdraw_id = ?';
-            $return = $db->exec($sql, $withdrawInfo['withdraw_id']);
+        $sql = 'SELECT COUNT(withdraw_id) FROM t_withdraw WHERE user_id = ? AND withdraw_amount = 1 AND withdraw_status = "success"';
+        if ($db->getOne($sql, $withdrawInfo['user_id'])) { //to do failure reason from api return
+            $model->withdraw->updateStatus(array('withdraw_status' => 'failure', 'withdraw_remark' => '新用户专享', 'withdraw_id' => $withdrawInfo['withdraw_id']));
         } else {
-            //to do failure reason from api return
-            $sql = 'UPDATE t_withdraw SET withdraw_status = "failure", withdraw_remark = ? WHERE withdraw_id = ?';
-            $return = $db->exec($sql, $returnStatus, $withdrawInfo['withdraw_id']);
+            $returnStatus = $wechatPay->transfer($withdrawInfo['withdraw_amount'], $withdrawInfo['wechat_openid']);
+            if (TRUE === $returnStatus) {
+                $model->gold->updateGold(array('user_id' => $withdrawInfo['user_id'], 'gold' => $withdrawInfo['withdraw_gold'], 'source' => "withdraw", 'type' => "out", 'relation_id' => $withdrawInfo['withdraw_id']));
+                $model->withdraw->updateStatus(array('withdraw_status' => 'success', 'withdraw_id' => $withdrawInfo['withdraw_id']));
+            } else {
+                //to do failure reason from api return
+                $model->withdraw->updateStatus(array('withdraw_status' => 'failure', 'withdraw_remark' => $returnStatus, 'withdraw_id' => $withdrawInfo['withdraw_id']));
+            }
         }
     }
 

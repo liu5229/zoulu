@@ -41,8 +41,7 @@ Class AdminWithdrawController extends AbstractController {
         if (isset($_POST['action']) && isset($_POST['withdraw_id'])) {
             switch ($_POST['action']) {
                 case 'failed' :
-                    $sql = 'UPDATE t_withdraw SET withdraw_status = "failure", withdraw_remark = ? WHERE withdraw_id = ?';
-                    $return = $this->db->exec($sql, $_POST['withdraw_remark'] ?? '', $_POST['withdraw_id']);
+                    $return = $this->model->withdraw->updateStatus(array('withdraw_status' => 'failure', 'withdraw_remark' => $_POST['withdraw_remark'] ?? '', 'withdraw_id' => $_POST['withdraw_id']));
                     break;
                 case 'success':
 //                    $alipay = new Alipay();
@@ -52,6 +51,14 @@ Class AdminWithdrawController extends AbstractController {
 //                        'name' => $userInfo['alipay_name']));
                     $sql = 'SELECT * FROM t_withdraw WHERE withdraw_id = ?';
                     $payInfo = $this->db->getRow($sql, $_POST['withdraw_id']);
+                    if (in_array($payInfo['withdraw_amount'], array(1, 5))) {
+                        $sql = 'SELECT COUNT(withdraw_id) FROM t_withdraw WHERE user_id = ? AND withdraw_amount = ? AND withdraw_status = ?';
+                        if ($this->db->getOne($sql, $payInfo['user_id'], $payInfo['withdraw_amount'], 'success')) {
+                            //to do failure reason from api return
+                            $return = $this->model->withdraw->updateStatus(array('withdraw_status' => 'failure', 'withdraw_remark' => '新用户专享', 'withdraw_id' => $_POST['withdraw_id']));
+                            break;
+                        }
+                    }
                     switch ($payInfo['withdraw_method']) {
                         case 'alipay':
                             $returnStatus = TRUE;
@@ -65,12 +72,9 @@ Class AdminWithdrawController extends AbstractController {
                     }
                     if (TRUE === $returnStatus) {
                         $this->model->gold->updateGold(array('user_id' => $payInfo['user_id'], 'gold' => $payInfo['withdraw_gold'], 'source' => "withdraw", 'type' => "out", 'relation_id' => $_POST['withdraw_id']));
-                        $sql = 'UPDATE t_withdraw SET withdraw_status = "success" WHERE withdraw_id = ?';
-                        $return = $this->db->exec($sql, $_POST['withdraw_id']);
+                        $return = $this->model->withdraw->updateStatus(array('withdraw_status' => 'success', 'withdraw_id' => $_POST['withdraw_id']));
                     } else {
-                        //to do failure reason from api return
-                        $sql = 'UPDATE t_withdraw SET withdraw_status = "failure", withdraw_remark = ? WHERE withdraw_id = ?';
-                        $return = $this->db->exec($sql, $returnStatus, $_POST['withdraw_id']);
+                        $return = $this->model->withdraw->updateStatus(array('withdraw_status' => 'failure', 'withdraw_remark' => $returnStatus, 'withdraw_id' => $_POST['withdraw_id']));
                     }
                     break;
             }
